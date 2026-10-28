@@ -30,6 +30,14 @@ Algumas condições que afetam o design do sistema foram impostas, entre elas:
 - Integração com Airflow
 - Utilização de Docker
 
+### Infraestrutura e Conteinerização
+
+A orquestração do ambiente é feita via `docker-compose.yml` utilizando as variáveis declaradas no arquivo `.env` (ou `.env.example`). O projeto não necessita de um arquivo `Dockerfile`, realizando a geração direta da imagem OCI através do .NET SDK com o comando:
+
+```bash
+dotnet publish --os linux --arch x64 /t:PublishContainer
+```
+
 ## Diagrama de Classes
 
 ![diagrama de classes](./diagrama-de-classes.png)

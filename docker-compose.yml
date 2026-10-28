@@ -1,0 +1,49 @@
+name: samu-dataflow-infra
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: samu_postgres_db
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_HOST_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - samu_network
+
+  backend-api:
+    image: samu-dataflow-api:latest
+    container_name: samu_backendcs_api
+    restart: on-failure
+    ports:
+      - "${API_HOST_PORT}:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ConnectionStrings__PostgreSQLConnection=Server=db;Port=5432;Database=${POSTGRES_DB};User Id=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      - API_KEY=${API_KEY}
+      - ORACLE_CONNECTION_STRING=${ORACLE_CONNECTION_STRING}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - samu_network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  samu_network:
+    driver: bridge
