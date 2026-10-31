@@ -40,11 +40,15 @@ Algumas condições que afetam o design do sistema foram impostas, entre elas:
 
 O Docker Compose **não constrói a imagem da API**: ele espera encontrar localmente a imagem `pulso192` com a tag configurada no `.env`. Por isso, siga os passos abaixo na ordem. Este fluxo usa os recursos de publicação de contêiner do SDK do .NET e não precisa de um `Dockerfile`.
 
-### Passo 1: publique a imagem da API
+### Passo 1: confira os pré-requisitos
+
+Instale o SDK do .NET compatível com o projeto, o Docker e o Docker Compose. Deixe o Docker em execução; no Windows, configure o Docker Desktop para usar **contêineres Linux**. Execute os comandos a partir da raiz do repositório.
+
+### Passo 2: publique a imagem da API
 
 Escolha o comando conforme a arquitetura do computador onde a imagem será executada:
 
-- Linux/Windows x64 com Docker Desktop em modo de contêineres Linux ou macOS com processador Intel (x64)
+- Linux x64, Windows x64 com Docker Desktop em modo de contêineres Linux ou macOS com processador Intel (x64):
 
   ```bash
   dotnet publish pulso192/pulso192.csproj --os linux --arch x64 -t:PublishContainer -p:ContainerRepository=pulso192 -p:ContainerImageTag=latest-linux-x64
@@ -56,7 +60,7 @@ Escolha o comando conforme a arquitetura do computador onde a imagem será execu
   dotnet publish pulso192/pulso192.csproj --os linux --arch arm64 -t:PublishContainer -p:ContainerRepository=pulso192 -p:ContainerImageTag=latest-linux-arm64
   ```
 
-A publicação cria a imagem localmente com o nome e a tag passados em `ContainerRepository` e `ContainerImageTag`.
+Os comandos criam imagens Linux; `--arch` indica a arquitetura da imagem, não o sistema operacional do computador. A publicação cria a imagem localmente como `pulso192` com a tag definida por `ContainerImageTag`.
 
 ### Passo 3: crie e configure o `.env`
 
@@ -74,15 +78,23 @@ Na raiz do repositório, faça uma cópia de `.env.example` com o comando adequa
   Copy-Item .env.example .env
   ```
 
- Depois, abra o `.env` e ajuste os valores **antes** de iniciar o Compose:
+- Prompt de Comando do Windows (CMD):
+
+  ```cmd
+  copy .env.example .env
+  ```
+
+`cp` não é nativo do CMD; nele, use `copy`. Depois, abra o `.env` e ajuste os valores **antes** de iniciar o Compose:
 
 - `POSTGRES_DB`, `POSTGRES_USER` e `POSTGRES_PASSWORD`: banco e credenciais locais do PostgreSQL.
-- `POSTGRES_HOST_PORT`: porta do PostgreSQL no computador.
-- `API_HOST_PORT`: porta da API no computador.
+- `POSTGRES_HOST_PORT`: porta do PostgreSQL no computador (5433 por padrão).
+- `API_HOST_PORT`: porta da API no computador (8001 por padrão).
 - `API_IMAGE_TAG`: tag da imagem publicada no passo anterior. Use `latest-linux-x64` para x64 ou `latest-linux-arm64` para ARM64.
 - `ASPNETCORE_ENVIRONMENT`, `API_KEY` e `ORACLE_CONNECTION_STRING`: configurações adicionais da API.
 
-**OBS:** `API_IMAGE_TAG` escolhe somente a tag configurada que precisa corresponder à imagem publicada no passo 2. O `.env.example` é apenas um modelo; revise e substitua os valores de exemplo, especialmente senhas e chaves.
+O nome da imagem (`pulso192`) já está definido no `docker-compose.yml`; `API_IMAGE_TAG` escolhe somente a tag. Por exemplo, `API_IMAGE_TAG=latest-linux-arm64` usa a imagem `pulso192:latest-linux-arm64`. A tag deve corresponder à imagem publicada no passo 2.
+
+O `.env` é local e não deve ser enviado ao Git, pois pode conter credenciais. O `.env.example` é apenas um modelo: substitua os valores de exemplo, especialmente senhas e chaves.
 
 ### Passo 4: inicie os serviços
 
@@ -90,7 +102,19 @@ Na raiz do repositório, execute:
 
 ```bash
 docker compose up -d
-``` 
+```
+
+O Compose inicia o PostgreSQL e, quando o banco estiver saudável, a API. Consulte o estado com `docker compose ps` e acompanhe os logs com `docker compose logs -f`.
+
+O PostgreSQL fica acessível no computador pela porta `POSTGRES_HOST_PORT` (5433 por padrão), e a API pela porta `API_HOST_PORT` (8001 por padrão). Entre os contêineres, a API acessa o banco pelo serviço `db` na porta interna `5432`.
+
+### Passo 5: pare os serviços
+
+Para parar e remover os contêineres e a rede, mantendo os dados do PostgreSQL no volume:
+
+```bash
+docker compose down
+```
 
 ## Diagrama de Classes
 
