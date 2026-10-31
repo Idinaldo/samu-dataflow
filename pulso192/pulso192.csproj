@@ -4,6 +4,8 @@
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <AssemblyName>pulso192</AssemblyName>
+        <RootNamespace>Pulso192</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

@@ -1,9 +1,9 @@
-name: samu-dataflow-infra
+name: pulso192
 
 services:
   db:
     image: postgres:16-alpine
-    container_name: samu_postgres_db
+    container_name: pulso192_postgres_db
     restart: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -20,30 +20,30 @@ services:
       retries: 5
       start_period: 10s
     networks:
-      - samu_network
+      - pulso192_network
 
   backend-api:
-    image: samu-dataflow-api:latest
-    container_name: samu_backendcs_api
+    image: pulso192:${API_IMAGE_TAG:-latest-linux-x64}
+    container_name: pulso192_backend_api
     restart: on-failure
     ports:
       - "${API_HOST_PORT}:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-      - ASPNETCORE_HTTP_PORTS=8080
-      - ConnectionStrings__PostgreSQLConnection=Server=db;Port=5432;Database=${POSTGRES_DB};User Id=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
-      - API_KEY=${API_KEY}
-      - ORACLE_CONNECTION_STRING=${ORACLE_CONNECTION_STRING}
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ASPNETCORE_HTTP_PORTS: 8080
+      ConnectionStrings__PostgreSQLConnection: "Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      API_KEY: ${API_KEY}
+      ORACLE_CONNECTION_STRING: ${ORACLE_CONNECTION_STRING}
     depends_on:
       db:
         condition: service_healthy
     networks:
-      - samu_network
+      - pulso192_network
 
 volumes:
   postgres_data:
     driver: local
 
 networks:
-  samu_network:
+  pulso192_network:
     driver: bridge
