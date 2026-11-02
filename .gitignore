@@ -5,3 +5,13 @@
 **/bin/
 **/obj/
 .vs/
+
+# Dados: nunca vão pro Git (repositório público, LGPD)
+*.csv
+*.xlsx
+*.dmp
+data/
+
+# Material local
+_contexto/
+AUDITORIA.md
