@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using pulso192.Models;
+using Pulso192.Models;
 
-namespace pulso192.Controllers;
+namespace Pulso192.Controllers;
 
 [ApiController]
 [Route("[controller]")]

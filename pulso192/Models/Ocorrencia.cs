@@ -1,4 +1,4 @@
-namespace pulso192.Models;
+namespace Pulso192.Models;
 
 public class Ocorrencia
 {

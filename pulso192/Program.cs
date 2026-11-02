@@ -1,4 +1,4 @@
-namespace pulso192;
+namespace Pulso192;
 
 public class Program
 {
