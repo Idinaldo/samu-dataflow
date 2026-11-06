@@ -5,7 +5,7 @@ namespace Pulso192.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class HelloApp : ControllerBase
+public class OcorrenciaController : ControllerBase
 {
     [HttpGet("/")]
     public string Get()
