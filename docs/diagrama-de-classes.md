@@ -1,9 +1,5 @@
 # Diagrama de classes
 
-Versão completa do diagrama apresentado no SR1, com atributos e métodos. Validada com o professor.
-
-O diagrama fica em Mermaid (texto), não em imagem: o GitHub desenha sozinho e qualquer mudança aparece no histórico de commits.
-
 ## Parte 1: entrada, domínio e pipeline
 
 ```mermaid
@@ -147,15 +143,15 @@ classDiagram
 
 ## Como ler
 
-| Símbolo | Nome | Significado | Exemplo |
-|---|---|---|---|
-| `..▷` | Implementação | Cumpre o contrato de uma interface | FonteCsv implementa IFonteDeOcorrencias |
-| `—▷` | Herança | É um tipo de outra classe | CargaException é uma PipelineException |
-| `—◆` | Composição | A parte não existe sem o todo | Endereco só existe dentro de uma Ocorrencia |
-| `—◇` | Agregação | O todo tem partes que fazem sentido sozinhas | ExecucaoETL tem várias Rejeicao |
-| `—>` | Associação | Guarda ou usa a outra de forma fixa | OcorrenciasController usa o repositório |
-| `..>` | Dependência | Usa a outra só na hora | RelatorioQualidade lê ExecucaoETL |
-| `+` / `-` | Público / privado | Quem pode ver | `apiKey` é privado |
+| Símbolo   | Nome              | Significado                                  | Exemplo                                     |
+| --------- | ----------------- | -------------------------------------------- | ------------------------------------------- |
+| `..▷`     | Implementação     | Cumpre o contrato de uma interface           | FonteCsv implementa IFonteDeOcorrencias     |
+| `—▷`      | Herança           | É um tipo de outra classe                    | CargaException é uma PipelineException      |
+| `—◆`      | Composição        | A parte não existe sem o todo                | Endereco só existe dentro de uma Ocorrencia |
+| `—◇`      | Agregação         | O todo tem partes que fazem sentido sozinhas | ExecucaoETL tem várias Rejeicao             |
+| `—>`      | Associação        | Guarda ou usa a outra de forma fixa          | OcorrenciasController usa o repositório     |
+| `..>`     | Dependência       | Usa a outra só na hora                       | RelatorioQualidade lê ExecucaoETL           |
+| `+` / `-` | Público / privado | Quem pode ver                                | `apiKey` é privado                          |
 
 ## Fluxo de uma execução
 

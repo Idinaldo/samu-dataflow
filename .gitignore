@@ -12,6 +12,3 @@
 *.dmp
 data/
 
-# Material local
-_contexto/
-AUDITORIA.md
