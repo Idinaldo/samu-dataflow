@@ -7,12 +7,6 @@ namespace Pulso192.Controllers;
 [Route("[controller]")]
 public class OcorrenciaController : ControllerBase
 {
-    [HttpGet("/")]
-    public string Get()
-    {
-        return "Hello, Pulso192";
-    }
-
     [HttpGet("/ocorrencias")]
     public List<Ocorrencia> getOcorrencias()
     {
