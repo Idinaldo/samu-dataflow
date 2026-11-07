@@ -57,4 +57,3 @@ ENTRYPOINT ["dotnet", "pulso192.dll"]
 # o "-p 8080:8080" mapeia a porta 8080 do container com a porta 8080 da sua máquina
 # o "--name pulso192-api" apenas define um nome
 # o "pulso192:test" é apenas o nome:versão da imagem gerada pelo docker build
-
