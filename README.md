@@ -46,43 +46,26 @@ pulso192/              API ASP.NET Core
 docs/
   regras-de-qualidade.md
   diagrama-de-classes.md
-docker-compose.yml     PostgreSQL + API
+docker-compose.yml     Configurações Docker p/ ambiente de Desenvolvimento
+docker-prod-compose.yml     Configurações Docker p/ ambiente de Produção
 .env.example           modelo das variáveis de ambiente
 ```
 
 ## Como rodar
 
-Pré-requisitos: .NET 10 SDK, Docker e Docker Compose. Comandos na raiz do repositório.
+Pré-requisitos:
+1. Computador
+2. Docker
+3. Internet
 
-**1. Gere a imagem da API**
 
+Para iniciar a aplicação **pela primeira vez**:
 ```bash
-# x64
-dotnet publish pulso192/pulso192.csproj --os linux --arch x64 -t:PublishContainer -p:ContainerRepository=pulso192 -p:ContainerImageTag=latest-linux-x64
-
-# ARM64 (Apple Silicon)
-dotnet publish pulso192/pulso192.csproj --os linux --arch arm64 -t:PublishContainer -p:ContainerRepository=pulso192 -p:ContainerImageTag=latest-linux-arm64
+docker compose -f docker-prod-compose.yml --env-file <caminho-p-seu.env> up -d --build
 ```
 
-**2. Crie o `.env`** e troque as senhas de exemplo
-
+Para iniciar a aplicação para **demais vezes**:
 ```bash
-cp .env.example .env            # Linux, macOS, Git Bash
-Copy-Item .env.example .env     # PowerShell
+docker compose -f docker-prod-compose.yml --env-file <caminho-p-seu.env> up -d
 ```
 
-Em ARM64, mude `API_IMAGE_TAG` para `latest-linux-arm64`.
-
-**3. Suba os serviços**
-
-```bash
-docker compose up -d
-```
-
-PostgreSQL na porta 5433, API em `http://localhost:8001/`.
-
-**4. Pare os serviços**
-
-```bash
-docker compose down
-```
