@@ -1,7 +1,7 @@
 name: pulso192
-sadsads
+
 services:
-  pulso192-api:
+  api:
     build:
       context: ./pulso192
       dockerfile: Dockerfile
@@ -14,31 +14,26 @@ services:
       - "8080:8080"
 
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:8080
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
 
   postgres-db:
     image: postgres:16-alpine
-
-    ports:
-      - "5432:5432"
-
+    
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=pulso192_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  # mudar para a versão do cliente antes de subir em prod
   oracle-db:
-    image: container-registry.oracle.com/database/free:latest
-
-    ports:
-      - "1521:1521"
+    image: container-registry.oracle.com/database/free:23.26.4.0-lite
 
     environment:
-      - ORACLE_PWD=oracle
+      ORACLE_PWD: ${ORACLE_PASSWORD}
 
 volumes:
   postgres_data:
