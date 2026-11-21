@@ -53,19 +53,29 @@ docker-prod-compose.yml     Configurações Docker p/ ambiente de Produção
 
 ## Como rodar
 
-Pré-requisitos:
+### Pré-requisitos:
 1. Computador
 2. Docker
 3. Internet
 
-
-Para iniciar a aplicação **pela primeira vez**:
+### Produção
+Para iniciar a aplicação **pela primeira vez para produção**:
 ```bash
 docker compose -f docker-prod-compose.yml --env-file <caminho-p-seu.env> up -d --build
 ```
 
-Para iniciar a aplicação para **demais vezes**:
+Para iniciar a aplicação para **demais vezes para produção**:
 ```bash
 docker compose -f docker-prod-compose.yml --env-file <caminho-p-seu.env> up -d
 ```
 
+### Desenvolvimento
+Para iniciar a aplicação **pela primeira vez para produção**:
+```bash
+docker compose up -d --build
+```
+
+Para iniciar a aplicação para **demais vezes para produção**:
+```bash
+docker compose up -d
+```
