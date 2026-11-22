@@ -61,3 +61,20 @@ A ideia é rejeitar pouco: um registro com idade errada ainda tem data, local e 
 - **Regra geral do sistema:** logs e relatórios de qualidade não copiam valores das colunas, só contagens, número da linha e ID da regra.
 - **Proposta pro CIE:** guardar o endereço sem número da casa no banco final, ou o endereço completo numa tabela com acesso restrito.
 
+## 5. Adaptação do mock Oracle de 36 colunas
+
+O mock Oracle reproduz a camada bronze com 36 colunas; ele não tem o mesmo formato do CSV de 12 colunas usado na especificação original. O pipeline adapta os campos necessários ao modelo final:
+
+| Campo do mock Oracle | Campo tratado |
+|---|---|
+| `DATA/HORA CRIAÇÃO` | `data_hora` |
+| `MUNICÍPIO`, `BAIRRO` | `municipio`, `bairro` |
+| `ORIGEM DA CHAMADA` | `origem_chamado` |
+| `CÓD./DESCRIÇÃO TIPO`, `CÓD./DESCRIÇÃO SUBTIPO` | `tipo`, `subtipo` (código antes da barra) |
+| `SEXO`, `IDADE` | `sexo`, `idade` |
+| `FINALIZAÇÃO` | `codigo_desfecho`, `desfecho` |
+
+O endereço completo é usado apenas durante a transformação para detectar possíveis duplicatas e não é enviado à API nem armazenado no PostgreSQL; assim, R09 é atendida por omissão do campo. O hash da linha bruta é usado para deduplicação, não aparece na API ou no relatório.
+
+Limitações da adaptação: a camada bronze já tipa `DATA/HORA CRIAÇÃO` como data, então R03 não consegue observar texto de data inválido; a fonte Oracle mock sempre informa `RECIFE`, portanto R07 valida o escopo do mock; e a coluna bronze `FINALIZAÇÃO` não contém um campo independente `motivo_finalizacao`, então R16 só poderá ser avaliada quando a origem fornecer esse dado separadamente.
+

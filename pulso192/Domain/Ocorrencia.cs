@@ -1,8 +1,7 @@
-namespace Pulso192.Models;
+namespace Pulso192.Domain;
 
 // Ocorrência depois de tratada pelo motor (o "T" do ETL), pronta pra ir pro PostgreSQL.
-// Campos seguem o dicionário da US03 (docs/regras-de-qualidade.md) e o diagrama
-// de classes (docs/diagrama-de-classes.md).
+// Campos seguem o dicionário da US03 e o diagrama de classes.
 // Propriedades públicas: com campos privados o JSON da API saía como {}.
 public class Ocorrencia
 {

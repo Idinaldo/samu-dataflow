@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Pulso192.Models;
+namespace Pulso192.Domain;
 
 // Onde aconteceu. Só município e bairro, sem a rua: 7.759 registros têm número
 // da casa, o que junto com hora, idade e tipo identifica o paciente (LGPD).

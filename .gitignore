@@ -11,4 +11,5 @@
 *.xlsx
 *.dmp
 data/
+pulso192/Database/Oracle/demo/.import-generated.sql
 

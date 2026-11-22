@@ -1,81 +1,62 @@
 # Pulso 192
 
-Motor de tratamento dos dados de ocorrências do SAMU Recife, feito para o **CIE (Centro de Inteligência Epidemiológica do Recife)**, da SESAU/COP.
+Backend para tratamento dos dados de ocorrências do SAMU Recife, feito para o **CIE (Centro de Inteligência Epidemiológica do Recife)**, da SESAU/COP.
 
 Projeto 2 de Segurança da Informação da CESAR School, 2026.2. [Site do projeto](https://sites.google.com/cesar.school/samu-dataflow-projeto-2-ciber/).
 
 ## O que faz
 
-Os dados de ocorrências chegam com registros de teste, duplicatas, idades impossíveis, bairros escritos de vários jeitos e campos vazios. O Pulso 192 extrai esses dados do Oracle do CIE, aplica as regras de qualidade e grava o resultado num PostgreSQL, registrando cada execução.
+O Pulso 192 lê a camada bronze no Oracle, aplica as regras de qualidade e grava os registros aceitos diretamente no PostgreSQL. A API dispara o pipeline e permite consultar os resultados; ela não faz uma chamada HTTP para si mesma durante a carga.
 
 ```mermaid
 flowchart LR
-    A[Airflow] -->|dispara| B[PipelineETL]
-    O[(Oracle do CIE)] -->|E: extrai| B
-    B -->|T: regras R01 a R16| B
-    B -->|L: HTTP POST + API key| C[API ASP.NET]
-    C -->|grava em lote| P[(PostgreSQL)]
-    B -->|relatório JSON| A
+    O[(Oracle)] -->|extrai| E[Pipeline ETL em C#]
+    E -->|valida e transforma| E
+    E -->|grava diretamente| P[(PostgreSQL)]
+    C[Cliente ou Airflow] -->|POST /execucoes| E
+    C -->|GET /ocorrencias| P
 ```
 
-Regras em [docs/regras-de-qualidade.md](docs/regras-de-qualidade.md). Classes em [docs/diagrama-de-classes.md](docs/diagrama-de-classes.md).
-
-## Requisitos
-
-**Funcionais**
-
-1. Extrair as ocorrências do Oracle do CIE
-2. Validar os dados com as regras R01 a R16
-3. Corrigir, sinalizar ou rejeitar registros inválidos ou duplicados
-4. Registrar cada execução (lidos, carregados, rejeitados e motivo)
-5. Gravar os dados tratados no PostgreSQL
-6. Disponibilizar os dados tratados pela API
-
-**Não funcionais**
-
-- C# / ASP.NET, PostgreSQL, Docker e Airflow
-- API protegida por API key
-- LGPD: logs não copiam valores dos registros e o endereço fica só como bairro e município
+O pipeline registra as rejeições e os totais de cada execução. A persistência usa uma transação e uma chave hash única para não inserir duplicatas em execuções repetidas. Regras em [docs/regras-de-qualidade.md](docs/regras-de-qualidade.md); classes e fluxo em [docs/diagrama-de-classes.md](docs/diagrama-de-classes.md).
 
 ## Estrutura
 
 ```
-pulso192/              API ASP.NET Core
-  Controllers/         endpoints
-  Models/              Ocorrencia, Endereco, Sexo
-docs/
-  regras-de-qualidade.md
-  diagrama-de-classes.md
-docker-compose.yml     Configurações Docker p/ ambiente de Desenvolvimento
-docker-prod-compose.yml     Configurações Docker p/ ambiente de Produção
-.env.example           modelo das variáveis de ambiente
+pulso192/              API ASP.NET Core e pipeline ETL
+  Configuration/       opções de conexão e configuração
+  Contracts/           respostas públicas da API
+  Controllers/          endpoints /execucoes e /ocorrencias
+  Domain/               ocorrência, execução, rejeições e relatório
+  Infrastructure/       repositório PostgreSQL e inicialização do schema
+  Middleware/           API key e tratamento de erros
+  Pipeline/             fonte Oracle, regras e orquestração do ETL
+  Database/             schema do PostgreSQL e seed fictício do Oracle
+docs/                   regras de qualidade e diagrama de classes
+docker-compose.yml      API, PostgreSQL e Oracle de demonstração
+.env.example            modelo de variáveis para execução local
 ```
 
-## Como rodar
+## Como rodar localmente
 
-### Pré-requisitos:
-1. Computador
-2. Docker
-3. Internet
+### Pré-requisitos
 
-### Produção
-Para iniciar a aplicação **pela primeira vez para produção**:
-```bash
-docker compose -f docker-prod-compose.yml --env-file <caminho-p-seu.env> up -d --build
-```
+- Docker Desktop com Docker Compose
+- Acesso à imagem Oracle Free no Oracle Container Registry
 
-Para iniciar a aplicação para **demais vezes para produção**:
-```bash
-docker compose -f docker-prod-compose.yml --env-file <caminho-p-seu.env> up -d
-```
+Copie `.env.example` para `.env` na raiz do repositório e ajuste os valores se necessário. Os valores do exemplo são somente para uso local; não use credenciais de exemplo em ambientes reais.
 
-### Desenvolvimento
-Para iniciar a aplicação **pela primeira vez para produção**:
-```bash
+Suba a API e os bancos:
+
+```powershell
 docker compose up -d --build
 ```
 
-Para iniciar a aplicação para **demais vezes para produção**:
-```bash
+Para iniciar novamente sem rebuild:
+
+```powershell
 docker compose up -d
 ```
+
+O Compose publica a API em `http://localhost:8080`, o PostgreSQL em `localhost:5432` e o Oracle em `localhost:1521`. O Oracle verifica a tabela de demonstração no schema `SYSTEM` ao iniciar: se ela não existir com as 36 colunas e 10 registros esperados, executa o script em `Database/Oracle/setup`; caso já esteja pronta, não a recria. Aguarde o Oracle concluir a inicialização antes de disparar o pipeline.
+
+Os endpoints protegidos exigem o header `X-API-Key`. O valor padrão local é `local-only-development-key`; se alterar `API_KEY` no `.env`, atualize também a variável `@apiKey` no arquivo [pulso192.http](pulso192/pulso192.http).
