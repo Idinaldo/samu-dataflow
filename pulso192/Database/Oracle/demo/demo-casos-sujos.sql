@@ -1,4 +1,5 @@
 ALTER SESSION SET CURRENT_SCHEMA=SYSTEM;
+delete from samu_ocorrencia_bronze where "OCORRÊNCIA" like 'S22%';
 -- R01 registro de teste
 insert into samu_ocorrencia_bronze ("OCORRÊNCIA","DATA/HORA CRIAÇÃO","IDADE","SEXO","ENDEREÇO","ORIGEM DA CHAMADA","BAIRRO","MUNICÍPIO","CÓD./DESCRIÇÃO TIPO","CÓD./DESCRIÇÃO SUBTIPO","FINALIZAÇÃO") values ('S2200001',to_date('2026-11-13 09:00:00','yyyy-mm-dd hh24:mi:ss'),'30 Anos','MASCULINO','RUA DEMO 1','RESIDENCIAL','BOA VISTA','RECIFE','TESTE/teste','TESTE/teste','13/11/2026 09:10:00 / 1. Ocorrência concluída com êxito');
 -- trote
