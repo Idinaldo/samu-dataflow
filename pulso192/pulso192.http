@@ -1,6 +1,0 @@
-@pulso192_HostAddress = http://localhost:5188
-
-GET {{pulso192_HostAddress}}/
-Accept: application/json
-
-###

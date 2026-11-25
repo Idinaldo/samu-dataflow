@@ -1,4 +1,4 @@
-namespace Pulso192.Models;
+namespace Pulso192.Domain;
 
 // Lista fechada de valores. R05
 // Atenção: pra API aceitar e devolver o texto ("FEMININO") e não o número,

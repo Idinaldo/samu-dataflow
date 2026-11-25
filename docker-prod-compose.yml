@@ -1,39 +1,59 @@
 name: pulso192
 
 services:
-  api:
+  pulso192-api:
     build:
       context: ./pulso192
       dockerfile: Dockerfile
 
     depends_on:
-      - oracle-db
-      - postgres-db
+      postgres-db:
+        condition: service_healthy
+      oracle-db:
+        condition: service_started
 
     ports:
-      - "8080:8080"
+      - "${API_HOST_PORT:-8080}:8080"
 
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
+      Pulso192__ApiKey: ${API_KEY:-local-only-development-key}
+      Pulso192__OracleSchema: SYSTEM
+      Pulso192__OracleTable: SAMU_OCORRENCIA_BRONZE
+      ConnectionStrings__Oracle: "${ORACLE_CONNECTION_STRING:-Data Source=//oracle-db:1521/FREEPDB1;User Id=SYSTEM;Password=${ORACLE_PASSWORD:-oracle};}"
+      ConnectionStrings__Postgres: "Host=postgres-db;Port=5432;Database=${POSTGRES_DB:-pulso192_db};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres};"
 
   postgres-db:
     image: postgres:16-alpine
-    
+
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-pulso192_db}
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  # mudar para a versão do cliente antes de subir em prod
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   oracle-db:
     image: container-registry.oracle.com/database/free:23.26.4.0-lite
 
     environment:
-      ORACLE_PWD: ${ORACLE_PASSWORD}
+      ORACLE_PWD: ${ORACLE_PASSWORD:-oracle}
+      NLS_LANG: AMERICAN_AMERICA.AL32UTF8
+
+    volumes:
+      - oracle_data:/opt/oracle/oradata
+      - ./pulso192/Database/Oracle/setup:/opt/oracle/scripts/setup:ro
+      - ./pulso192/Database/Oracle/startup:/opt/oracle/scripts/startup:ro
+      - ./pulso192/Database/Oracle/demo:/opt/oracle/scripts/demo:ro
 
 volumes:
   postgres_data:
+  oracle_data:
