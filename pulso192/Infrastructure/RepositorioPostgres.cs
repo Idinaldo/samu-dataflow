@@ -63,11 +63,15 @@ public sealed class RepositorioPostgres(IConfiguration configuration)
         int tamanhoPagina,
         string? municipio,
         string? bairro,
+        DateTime? inicioUtc,
+        DateTime? fimExclusivoUtc,
         CancellationToken cancellationToken)
     {
         const string filtro = """
             WHERE (@municipio IS NULL OR municipio = @municipio)
               AND (@bairro IS NULL OR bairro = @bairro)
+              AND (@inicio IS NULL OR data_hora >= @inicio)
+              AND (@fim IS NULL OR data_hora < @fim)
             """;
 
         try
@@ -76,7 +80,7 @@ public sealed class RepositorioPostgres(IConfiguration configuration)
             await connection.OpenAsync(cancellationToken);
 
             await using var countCommand = new NpgsqlCommand($"SELECT COUNT(*) FROM ocorrencias {filtro}", connection);
-            AdicionarFiltros(countCommand, municipio, bairro);
+            AdicionarFiltros(countCommand, municipio, bairro, inicioUtc, fimExclusivoUtc);
             var total = Convert.ToInt32(await countCommand.ExecuteScalarAsync(cancellationToken));
 
             const string listarSql = """
@@ -90,7 +94,7 @@ public sealed class RepositorioPostgres(IConfiguration configuration)
                 """;
 
             await using var listCommand = new NpgsqlCommand(listarSql, connection);
-            AdicionarFiltros(listCommand, municipio, bairro);
+            AdicionarFiltros(listCommand, municipio, bairro, inicioUtc, fimExclusivoUtc);
             listCommand.Parameters.AddWithValue("limite", tamanhoPagina);
             listCommand.Parameters.AddWithValue("offset", (long)(pagina - 1) * tamanhoPagina);
 
@@ -140,10 +144,17 @@ public sealed class RepositorioPostgres(IConfiguration configuration)
         command.Parameters.AddWithValue("hash", NpgsqlDbType.Varchar, ocorrencia.Hash);
     }
 
-    private static void AdicionarFiltros(NpgsqlCommand command, string? municipio, string? bairro)
+    private static void AdicionarFiltros(
+        NpgsqlCommand command,
+        string? municipio,
+        string? bairro,
+        DateTime? inicioUtc,
+        DateTime? fimExclusivoUtc)
     {
         command.Parameters.Add("municipio", NpgsqlDbType.Text).Value = (object?)municipio ?? DBNull.Value;
         command.Parameters.Add("bairro", NpgsqlDbType.Text).Value = (object?)bairro ?? DBNull.Value;
+        command.Parameters.Add("inicio", NpgsqlDbType.TimestampTz).Value = (object?)inicioUtc ?? DBNull.Value;
+        command.Parameters.Add("fim", NpgsqlDbType.TimestampTz).Value = (object?)fimExclusivoUtc ?? DBNull.Value;
     }
 
     private static Ocorrencia MapearOcorrencia(NpgsqlDataReader reader)
