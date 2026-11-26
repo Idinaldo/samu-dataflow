@@ -20,13 +20,20 @@ public sealed class OcorrenciasController(RepositorioPostgres repositorio) : Con
         [FromQuery, Range(1, 100)] int tamanhoPagina = 50,
         [FromQuery, StringLength(100)] string? municipio = null,
         [FromQuery, StringLength(100)] string? bairro = null,
+        [FromQuery] DateOnly? dataInicio = null,
+        [FromQuery] DateOnly? dataFim = null,
         CancellationToken cancellationToken = default)
     {
+        if (dataInicio is not null && dataFim is not null && dataInicio > dataFim)
+            return BadRequest("dataInicio não pode ser maior que dataFim.");
+
         var (itens, total) = await repositorio.ListarAsync(
             pagina,
             tamanhoPagina,
             NormalizarFiltro(municipio),
             NormalizarFiltro(bairro),
+            InicioDoDiaRecife(dataInicio),
+            InicioDoDiaRecife(dataFim?.AddDays(1)),
             cancellationToken);
 
         var resposta = new PaginaOcorrenciasResponse(
@@ -57,6 +64,12 @@ public sealed class OcorrenciasController(RepositorioPostgres repositorio) : Con
             ocorrencia.Desfecho,
             ocorrencia.Sinalizacoes);
     }
+
+    // Datas chegam no horário de Recife (UTC-3); o banco guarda timestamptz em UTC.
+    private static DateTime? InicioDoDiaRecife(DateOnly? data) =>
+        data is null
+            ? null
+            : new DateTimeOffset(data.Value.ToDateTime(TimeOnly.MinValue), TimeSpan.FromHours(-3)).UtcDateTime;
 
     private static string? NormalizarFiltro(string? valor) =>
         string.IsNullOrWhiteSpace(valor) ? null : valor.Trim().ToUpperInvariant();

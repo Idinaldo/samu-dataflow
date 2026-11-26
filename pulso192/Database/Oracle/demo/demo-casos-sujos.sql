@@ -1,0 +1,24 @@
+ALTER SESSION SET CURRENT_SCHEMA=SYSTEM;
+delete from samu_ocorrencia_bronze where "OCORRÊNCIA" like 'S22%';
+-- R01 registro de teste
+insert into samu_ocorrencia_bronze ("OCORRÊNCIA","DATA/HORA CRIAÇÃO","IDADE","SEXO","ENDEREÇO","ORIGEM DA CHAMADA","BAIRRO","MUNICÍPIO","CÓD./DESCRIÇÃO TIPO","CÓD./DESCRIÇÃO SUBTIPO","FINALIZAÇÃO") values ('S2200001',to_date('2026-11-13 09:00:00','yyyy-mm-dd hh24:mi:ss'),'30 Anos','MASCULINO','RUA DEMO 1','RESIDENCIAL','BOA VISTA','RECIFE','TESTE/teste','TESTE/teste','13/11/2026 09:10:00 / 1. Ocorrência concluída com êxito');
+-- trote
+insert into samu_ocorrencia_bronze ("OCORRÊNCIA","DATA/HORA CRIAÇÃO","IDADE","SEXO","ENDEREÇO","ORIGEM DA CHAMADA","BAIRRO","MUNICÍPIO","CÓD./DESCRIÇÃO TIPO","CÓD./DESCRIÇÃO SUBTIPO","FINALIZAÇÃO") values ('S2200002',to_date('2026-11-13 10:00:00','yyyy-mm-dd hh24:mi:ss'),'25 Anos','FEMININO','RUA DEMO 2','VIA PÚBLICA','AFOGADOS','RECIFE','GERAIS/gerais/outros','OUTROS/outros','13/11/2026 10:05:00 / 2. Trote');
+-- duplicata operacional
+insert into samu_ocorrencia_bronze ("OCORRÊNCIA","DATA/HORA CRIAÇÃO","IDADE","SEXO","ENDEREÇO","ORIGEM DA CHAMADA","BAIRRO","MUNICÍPIO","CÓD./DESCRIÇÃO TIPO","CÓD./DESCRIÇÃO SUBTIPO","FINALIZAÇÃO") values ('S2200003',to_date('2026-11-13 11:00:00','yyyy-mm-dd hh24:mi:ss'),'40 Anos','MASCULINO','RUA DEMO 3','RESIDENCIAL','VARZEA','RECIFE','CLINICA/clinica','OUTROS/outros','13/11/2026 11:03:00 / 3. Solicitação duplicada');
+-- obstetrica com sexo masculino
+insert into samu_ocorrencia_bronze ("OCORRÊNCIA","DATA/HORA CRIAÇÃO","IDADE","SEXO","ENDEREÇO","ORIGEM DA CHAMADA","BAIRRO","MUNICÍPIO","CÓD./DESCRIÇÃO TIPO","CÓD./DESCRIÇÃO SUBTIPO","FINALIZAÇÃO") values ('S2200004',to_date('2026-11-13 12:00:00','yyyy-mm-dd hh24:mi:ss'),'28 Anos','MASCULINO','RUA DEMO 4','RESIDENCIAL','IPUTINGA','RECIFE','OBSTETRICA/obstetrica','OUTROS/outros','13/11/2026 12:40:00 / 1. Ocorrência concluída com êxito');
+-- idade invalida
+insert into samu_ocorrencia_bronze ("OCORRÊNCIA","DATA/HORA CRIAÇÃO","IDADE","SEXO","ENDEREÇO","ORIGEM DA CHAMADA","BAIRRO","MUNICÍPIO","CÓD./DESCRIÇÃO TIPO","CÓD./DESCRIÇÃO SUBTIPO","FINALIZAÇÃO") values ('S2200005',to_date('2026-11-13 13:00:00','yyyy-mm-dd hh24:mi:ss'),'150 Anos','FEMININO','RUA DEMO 5','RESIDENCIAL','ESPINHEIRO','RECIFE','GERAIS/gerais/outros','OUTROS/outros','13/11/2026 13:30:00 / 1. Ocorrência concluída com êxito');
+-- origem invalida (ruido de digitacao)
+insert into samu_ocorrencia_bronze ("OCORRÊNCIA","DATA/HORA CRIAÇÃO","IDADE","SEXO","ENDEREÇO","ORIGEM DA CHAMADA","BAIRRO","MUNICÍPIO","CÓD./DESCRIÇÃO TIPO","CÓD./DESCRIÇÃO SUBTIPO","FINALIZAÇÃO") values ('S2200006',to_date('2026-11-13 14:00:00','yyyy-mm-dd hh24:mi:ss'),'60 Anos','MASCULINO','RUA DEMO 6','EDILEUZA','JORDAO','RECIFE','NEUROLOGICA/neurologica','CONVULSAO/convulsao','13/11/2026 14:30:00 / 1. Ocorrência concluída com êxito');
+-- bairro vazio e subtipo vazio
+insert into samu_ocorrencia_bronze ("OCORRÊNCIA","DATA/HORA CRIAÇÃO","IDADE","SEXO","ENDEREÇO","ORIGEM DA CHAMADA","BAIRRO","MUNICÍPIO","CÓD./DESCRIÇÃO TIPO","CÓD./DESCRIÇÃO SUBTIPO","FINALIZAÇÃO") values ('S2200007',to_date('2026-11-13 15:00:00','yyyy-mm-dd hh24:mi:ss'),'33 Anos','FEMININO','RUA DEMO 7','VIA PÚBLICA',null,'RECIFE','EXTERNA/causas externas',null,'13/11/2026 15:30:00 / 1. Ocorrência concluída com êxito');
+-- municipio fora de Recife
+insert into samu_ocorrencia_bronze ("OCORRÊNCIA","DATA/HORA CRIAÇÃO","IDADE","SEXO","ENDEREÇO","ORIGEM DA CHAMADA","BAIRRO","MUNICÍPIO","CÓD./DESCRIÇÃO TIPO","CÓD./DESCRIÇÃO SUBTIPO","FINALIZAÇÃO") values ('S2200008',to_date('2026-11-13 16:00:00','yyyy-mm-dd hh24:mi:ss'),'45 Anos','MASCULINO','RUA DEMO 8','RESIDENCIAL','CASA CAIADA','OLINDA','GERAIS/gerais/outros','OUTROS/outros','13/11/2026 16:30:00 / 1. Ocorrência concluída com êxito');
+-- possivel duplicata (mesma hora e mesmo endereco, codigos diferentes)
+insert into samu_ocorrencia_bronze ("OCORRÊNCIA","DATA/HORA CRIAÇÃO","IDADE","SEXO","ENDEREÇO","ORIGEM DA CHAMADA","BAIRRO","MUNICÍPIO","CÓD./DESCRIÇÃO TIPO","CÓD./DESCRIÇÃO SUBTIPO","FINALIZAÇÃO") values ('S2200009',to_date('2026-11-13 17:00:00','yyyy-mm-dd hh24:mi:ss'),'70 Anos','FEMININO','RUA DEMO 9, N 10','RESIDENCIAL','BOA VIAGEM','RECIFE','CLINICA/clinica','OUTROS/outros','13/11/2026 17:30:00 / 1. Ocorrência concluída com êxito');
+insert into samu_ocorrencia_bronze ("OCORRÊNCIA","DATA/HORA CRIAÇÃO","IDADE","SEXO","ENDEREÇO","ORIGEM DA CHAMADA","BAIRRO","MUNICÍPIO","CÓD./DESCRIÇÃO TIPO","CÓD./DESCRIÇÃO SUBTIPO","FINALIZAÇÃO") values ('S2200010',to_date('2026-11-13 17:00:00','yyyy-mm-dd hh24:mi:ss'),'70 Anos','FEMININO','RUA DEMO 9, N 10','RESIDENCIAL','BOA VIAGEM','RECIFE','CLINICA/clinica','OUTROS/outros','13/11/2026 17:35:00 / 1. Ocorrência concluída com êxito');
+commit;
+select count(*) from samu_ocorrencia_bronze;
+exit
