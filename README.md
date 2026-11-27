@@ -57,6 +57,25 @@ Para iniciar novamente sem rebuild:
 docker compose up -d
 ```
 
-O Compose publica a API em `http://localhost:8080`, o PostgreSQL em `localhost:5432` e o Oracle em `localhost:1521`. O Oracle verifica a tabela de demonstração no schema `SYSTEM` ao iniciar: se ela não existir com as 36 colunas e 10 registros esperados, executa o script em `Database/Oracle/setup`; caso já esteja pronta, não a recria. Aguarde o Oracle concluir a inicialização antes de disparar o pipeline.
+O `docker-compose.yml` **não publica nenhuma porta** no host: os bancos e a API ficam acessíveis só dentro da rede do Compose. Para chamar a API de fora (REST Client, curl, navegador), suba com o arquivo que publica a API em `http://localhost:8080` (porta configurável por `API_HOST_PORT` no `.env`); PostgreSQL e Oracle continuam sem porta exposta:
+
+```powershell
+docker compose -f docker-prod-compose.yml up -d --build
+```
+
+O Oracle verifica a tabela de demonstração no schema `SYSTEM` ao iniciar: se ela não existir com as 36 colunas e 10 registros esperados, executa o script em `pulso192/Database/Oracle/setup`; caso já esteja pronta, não a recria. Aguarde o Oracle ficar `healthy` (`docker compose ps`) antes de disparar o pipeline.
 
 Os endpoints protegidos exigem o header `X-API-Key`. O valor padrão local é `local-only-development-key`; se alterar `API_KEY` no `.env`, atualize também a variável `@apiKey` no arquivo [pulso192.http](pulso192/pulso192.http).
+
+### Testando a API
+
+Abra [pulso192/pulso192.http](pulso192/pulso192.http) no VS Code com a extensão **REST Client** e clique em *Send Request* sobre cada requisição. **Rode primeiro o `POST /execucoes`**, senão o banco fica vazio.
+
+Comportamento observado com o seed de demonstração (10 registros, todos em `RECIFE`):
+
+- `POST /execucoes` na primeira vez: `totalLidos` 10, `totalCarregados` 10, `totalRejeitados` 0.
+- `POST /execucoes` de novo (idempotência): os 10 registros voltam rejeitados pela regra `R02` (duplicata) e nada é inserido.
+- `GET /ocorrencias`: 10 itens; `?pagina=2&tamanhoPagina=10` devolve `itens` vazio e `total` 10. `pagina` deve ser ≥ 1 e `tamanhoPagina` entre 1 e 100, senão a resposta é 400.
+- Filtros `municipio` e `bairro`: **não diferenciam maiúsculas de minúsculas** (`Recife`, `recife` e `RECIFE` dão o mesmo resultado), mas **diferenciam acentos**. Os dados são gravados sem acento (`GRACAS`, `TORROES`), então `bairro=gracas` acha e `bairro=Graças` não.
+- O exemplo `bairro=BOA VIAGEM` retorna 0 itens: esse bairro não existe no seed. Use, por exemplo, `GRACAS` ou `IBURA`.
+- Sem o header `X-API-Key` (ou com chave errada): 401.
