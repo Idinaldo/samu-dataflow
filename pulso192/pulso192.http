@@ -14,7 +14,7 @@ GET {{baseUrl}}/ocorrencias?pagina=2&tamanhoPagina=10
 X-API-Key: {{apiKey}}
 
 ### Filtrar por município e bairro
-GET {{baseUrl}}/ocorrencias?municipio=RECIFE&bairro=BOA VIAGEM
+GET {{baseUrl}}/ocorrencias?municipio=RECIFE&bairro=GRACAS
 X-API-Key: {{apiKey}}
 
 ### Sem API key (tem que dar 401)
