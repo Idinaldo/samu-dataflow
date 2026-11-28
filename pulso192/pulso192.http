@@ -1,0 +1,21 @@
+@baseUrl = http://localhost:8080
+@apiKey = local-only-development-key
+
+### Rodar o ETL (Oracle -> PostgreSQL) e ver o relatório
+POST {{baseUrl}}/execucoes
+X-API-Key: {{apiKey}}
+
+### Listar ocorrências (primeira página)
+GET {{baseUrl}}/ocorrencias
+X-API-Key: {{apiKey}}
+
+### Paginação
+GET {{baseUrl}}/ocorrencias?pagina=2&tamanhoPagina=10
+X-API-Key: {{apiKey}}
+
+### Filtrar por município e bairro
+GET {{baseUrl}}/ocorrencias?municipio=RECIFE&bairro=GRACAS
+X-API-Key: {{apiKey}}
+
+### Sem API key (tem que dar 401)
+GET {{baseUrl}}/ocorrencias

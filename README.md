@@ -57,6 +57,51 @@ Para iniciar novamente sem rebuild:
 docker compose up -d
 ```
 
-O Compose publica a API em `http://localhost:8080`, o PostgreSQL em `localhost:5432` e o Oracle em `localhost:1521`. O Oracle verifica a tabela de demonstração no schema `SYSTEM` ao iniciar: se ela não existir com as 36 colunas e 10 registros esperados, executa o script em `Database/Oracle/setup`; caso já esteja pronta, não a recria. Aguarde o Oracle concluir a inicialização antes de disparar o pipeline.
+O `docker-compose.yml` **não publica nenhuma porta** no host: os bancos e a API ficam acessíveis só dentro da rede do Compose. Para chamar a API de fora (REST Client, curl, navegador), suba com o arquivo que publica a API em `http://localhost:8080` (porta configurável por `API_HOST_PORT` no `.env`); PostgreSQL e Oracle continuam sem porta exposta:
+
+```powershell
+docker compose -f docker-prod-compose.yml up -d --build
+```
+
+O Oracle verifica a tabela de demonstração no schema `SYSTEM` ao iniciar: se ela não existir com as 36 colunas e 10 registros esperados, executa o script em `pulso192/Database/Oracle/setup`; caso já esteja pronta, não a recria. Aguarde o Oracle ficar `healthy` (`docker compose ps`) antes de disparar o pipeline.
 
 Os endpoints protegidos exigem o header `X-API-Key`. O valor padrão local é `local-only-development-key`; se alterar `API_KEY` no `.env`, atualize também a variável `@apiKey` no arquivo [pulso192.http](pulso192/pulso192.http).
+
+### Testando a API
+
+Abra [pulso192/pulso192.http](pulso192/pulso192.http) no VS Code com a extensão **REST Client** e clique em *Send Request* sobre cada requisição. **Rode primeiro o `POST /execucoes`**, senão o banco fica vazio.
+
+Comportamento observado com o seed de demonstração (10 registros, todos em `RECIFE`):
+
+- `POST /execucoes` na primeira vez: `totalLidos` 10, `totalCarregados` 10, `totalRejeitados` 0.
+- `POST /execucoes` de novo (idempotência): os 10 registros voltam rejeitados pela regra `R02` (duplicata) e nada é inserido.
+- `GET /ocorrencias`: 10 itens; `?pagina=2&tamanhoPagina=10` devolve `itens` vazio e `total` 10. `pagina` deve ser ≥ 1 e `tamanhoPagina` entre 1 e 100, senão a resposta é 400.
+- Filtros `municipio` e `bairro`: **não diferenciam maiúsculas de minúsculas** (`Recife`, `recife` e `RECIFE` dão o mesmo resultado), mas **diferenciam acentos**. Os dados são gravados sem acento (`GRACAS`, `TORROES`), então `bairro=gracas` acha e `bairro=Graças` não.
+- Sem o header `X-API-Key` (ou com chave errada): 401.
+
+## Compatibilidade com Oracle 12
+
+O ambiente de demonstração usa Oracle Database Free 23ai, mas o banco do CIE pode ser Oracle 12. O que muda:
+
+**Driver (ponto crítico)**
+
+* O projeto usa `Oracle.ManagedDataAccess.Core` 23.26.401. A linha 23 do ODP.NET Core só conecta em Oracle 19c ou mais novo.
+* Para Oracle 12c (a partir de 12.1.0.2), troque pelo driver da linha 3.21 no `pulso192.csproj`:
+  `<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.*" />`
+* O namespace (`Oracle.ManagedDataAccess.Client`) é o mesmo, então o código não muda.
+
+**Consulta da FonteOracle**
+
+* É um `SELECT` simples com `ORDER BY`, sem recursos exclusivos do 23ai. Roda em 12c.
+* Os nomes de colunas com acento exigem que o banco use charset AL32UTF8 (ou que a tabela do CIE tenha os mesmos nomes entre aspas).
+* Todos os identificadores têm até 26 bytes, abaixo do limite de 30 bytes do Oracle 12.1.
+
+**Script de seed (só para o ambiente local)**
+
+* `pulso192/Database/Oracle/setup/01-samu_mock_oracle.sql` usa `DROP TABLE IF EXISTS` e `DROP VIEW IF EXISTS`, que só existem no 23ai. No Oracle 12 essas linhas dão erro. Apague-as ou troque por um bloco PL/SQL com `EXECUTE IMMEDIATE` e tratamento de exceção.
+* O resto do script (`CREATE TABLE`, `VARCHAR2 CHAR`, view com `REGEXP_SUBSTR`) funciona no 12c.
+
+**Pendente com o CIE**
+
+* Versão exata (12.1 ou 12.2) e charset do banco.
+* Usuário só de leitura e nome do schema e da tabela (`Pulso192__OracleSchema` e `Pulso192__OracleTable`).
